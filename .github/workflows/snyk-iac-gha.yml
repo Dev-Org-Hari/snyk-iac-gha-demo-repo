@@ -1,0 +1,46 @@
+name: snyk-iac-gha
+
+on: [workflow_dispatch]
+
+jobs:
+  snyk-iac-scan-job:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read 
+    outputs:
+      snyk-iac-job-output-critical: ${{ steps.snyk-iac-step.outputs.critical-count }}
+      snyk-iac-job-output-very-high: ${{ steps.snyk-iac-step.outputs.very-high-count }}
+      snyk-iac-job-output-high: ${{ steps.snyk-iac-step.outputs.high-count }}
+      snyk-iac-job-output-medium: ${{ steps.snyk-iac-step.outputs.medium-count }}
+      snyk-iac-job-output-low: ${{ steps.snyk-iac-step.outputs.low-count }}
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v3
+
+      - name: Print GITHUB_RUN_ID
+        shell: bash
+        run: |
+          echo "Ref name is $GITHUB_RUN_ID"
+          echo "Source is ${{ github.server_url }}/${{ github.repository }}"
+          echo "Subject is $GITHUB_WORKFLOW_REF|${{ github.run_id }}|${{ github.run_attempt }}|${{ github.run_number }}"
+          echo "Job is $GITHUB_JOB"
+          echo "Step id is ${{ steps.internal.id }}"
+
+      - id: snyk-iac-step
+        name: Snyk IaC Scan
+        uses: cloudbees-io-gha/snyk-iac-publish@v1
+        with:
+          snyk-token: ${{ secrets.SNYK_TOKEN }}
+          org-id: ${{ vars.SNYK_ORG_ID }}
+
+      - id: print-outputs-from-snyk-iac-step
+        name: Print outputs from the upstream Snyk IaC Scan step
+        run: |
+          # Printing all outputs
+          echo "Outputs from upstream Snyk IaC Scan step:"
+          echo "Critical count: ${{ steps.snyk-iac-step.outputs.critical-count }}"
+          echo "Very high count: ${{ steps.snyk-iac-step.outputs.very-high-count }}"
+          echo "High count: ${{ steps.snyk-iac-step.outputs.high-count }}"
+          echo "Medium count: ${{ steps.snyk-iac-step.outputs.medium-count }}"
+          echo "Low count: ${{ steps.snyk-iac-step.outputs.low-count }}"
