@@ -1,6 +1,9 @@
 name: snyk-iac-gha
 
-on: [workflow_dispatch]
+on:
+  push:
+    branches:
+      - "main"
 
 jobs:
   snyk-iac-scan-job:
